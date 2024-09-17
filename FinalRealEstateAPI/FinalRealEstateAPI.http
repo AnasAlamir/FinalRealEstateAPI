@@ -1,0 +1,6 @@
+@FinalRealEstateAPI_HostAddress = http://localhost:5130
+
+GET {{FinalRealEstateAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
