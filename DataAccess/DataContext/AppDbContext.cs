@@ -26,7 +26,9 @@ namespace DataAccess.DataContext
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             base.OnConfiguring(optionsBuilder);
-            optionsBuilder.UseSqlServer("Data Source=DESKTOP-5JC2MA4\\SQLEXPRESS;Initial Catalog=FinalRealEstateDb;Integrated Security=True;Trust Server Certificate=True");
+            optionsBuilder.UseSqlServer("Data Source=DESKTOP-5JC2MA4\\SQLEXPRESS;Initial Catalog=FinalRealEstateDb;" +
+                "Integrated Security=True;Trust Server Certificate=True;" +
+                "MultipleActiveResultSets=True;");///MultipleActiveResultSets
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

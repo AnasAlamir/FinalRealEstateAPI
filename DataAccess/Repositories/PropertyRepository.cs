@@ -27,6 +27,11 @@ namespace DataAccess.Repositories
                 .Include(property => property.Amenities);
 
         }
+        public IEnumerable<PropertyImage> GetPropertyImages(int propertyId)
+        {
+            return _dbSetPropertyImage.AsEnumerable().Where(i=>i.PropertyId == propertyId);
+        }
+
         public void AddImageToProperty(int propertyId, PropertyImage propertyImage)
         {
             Property? property = _dbSet.Include(p => p.PropertyImages)
@@ -35,6 +40,24 @@ namespace DataAccess.Repositories
             {
                 propertyImage.PropertyId = propertyId;
                 _dbSetPropertyImage.Add(propertyImage);
+            }
+            else
+            {
+                throw new ArgumentException("Property or PropertyImage is null.");
+            }
+        }
+        public void UpdateImageToProperty(int propertyId, PropertyImage propertyImage)
+        {
+            Property? property = _dbSet.Include(p => p.PropertyImages)
+                                 .FirstOrDefault(p => p.Id == propertyId);
+            var getPropertyImage = _dbSetPropertyImage
+                .Where(i=>i.PropertyId == propertyImage.PropertyId && i.Path == propertyImage.Path)
+                .FirstOrDefault();
+            if (property != null && propertyImage != null)
+            {
+                propertyImage.Id = getPropertyImage.Id;
+                propertyImage.PropertyId = propertyId;
+                _dbSetPropertyImage.Update(propertyImage);
             }
             else
             {

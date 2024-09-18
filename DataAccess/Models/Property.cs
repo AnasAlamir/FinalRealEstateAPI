@@ -28,7 +28,7 @@ namespace DataAccess.Models
         public DateTime DateAdded { get; set; }
         public int YearBuilt { get; set; }
         [Required]
-        public int StatusId { get; set; }
+        public int PropertyStatusId { get; set; }
         public int PropertyTypeId { get; set; }
         public int AmenitiesId { get; set; }
         public int UserId { get; set; }

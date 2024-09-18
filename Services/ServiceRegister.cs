@@ -14,6 +14,9 @@ namespace Services
         public static IServiceCollection RegisterService(this IServiceCollection services)
         {
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IPropertyService, PropertyService>();
+            services.AddScoped<IInquiryService, InquiryService>();
+            services.AddScoped<IFavoriteService, FavoriteService>();
             return services;
         }
     }

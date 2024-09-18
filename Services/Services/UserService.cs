@@ -74,7 +74,7 @@ namespace Services.Services
         }
         public void CreateUser(UserInsertDto userInsertDto)
         {
-            ValidateUserDto(userInsertDto);
+            
             try
             {
                 var user = new User
@@ -89,6 +89,7 @@ namespace Services.Services
                 };
                 // Hash the password before saving
                 user.Password = HashPassword(user.Password);
+                ValidateUserDto(user);
                 _unitOfWork.UserRepository.Insert(user);
                 _unitOfWork.Save();
             }
@@ -101,16 +102,9 @@ namespace Services.Services
 
         public void UpdateUser(UserUpdateDto userUpdateDto)//////////////????
         {
-            //ValidateUserDto(userUpdate.Dto);
 
             try
             {
-                //var existingUser = _unitOfWork.UserRepository.Get(id);
-                //if (existingUser == null)
-                //{
-                //    throw new KeyNotFoundException("User not found.");
-                //}
-
                 // Optional: update password only if provided
                 if (!string.IsNullOrEmpty(userUpdateDto.UserPassword))
                 {
@@ -128,6 +122,7 @@ namespace Services.Services
                     Address = userUpdateDto.UserAddress,
                     ProfilePicture = userUpdateDto.UserProfilePicture
                 };
+                ValidateUserDto(user);///////////
                 _unitOfWork.UserRepository.Update(user);
                 _unitOfWork.Save();
             }
@@ -259,8 +254,7 @@ namespace Services.Services
             try
             {
                 var favorites = _unitOfWork.FavoriteRepository.GetAll()
-                    .Where(f => f.UserId == userId)
-                    .ToList();
+                    .Where(f => f.UserId == userId);
                 return favorites.Select(favorite => new FavoriteDto
                 {
                     FavoriteId = favorite.Id,
@@ -297,16 +291,16 @@ namespace Services.Services
         }
 
         // Private method to validate user data
-        private void ValidateUserDto(UserInsertDto userDto)
+        private void ValidateUserDto(User user)
         {
-            if (userDto == null)
-                throw new ArgumentNullException(nameof(userDto));
+            if (user == null)
+                throw new ArgumentNullException(nameof(user));
 
-            if (string.IsNullOrEmpty(userDto.UserEmail))
-                throw new ArgumentException("User email is required.", nameof(userDto.UserEmail));
+            if (string.IsNullOrEmpty(user.Email))
+                throw new ArgumentException("User email is required.", nameof(user.Email));
 
-            if (string.IsNullOrEmpty(userDto.UserPassword))
-                throw new ArgumentException("User password is required.", nameof(userDto.UserPassword));
+            if (string.IsNullOrEmpty(user.Password))
+                throw new ArgumentException("User password is required.", nameof(user.Password));
 
             // Add any additional validations as needed
         }

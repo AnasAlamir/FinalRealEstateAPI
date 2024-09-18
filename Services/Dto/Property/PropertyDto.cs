@@ -34,6 +34,8 @@ namespace Services.Dto.Property
         public string Description { get; set; }
         public string AdditionalNotes { get; set; }
 
+        public IEnumerable<string> PropertyImagePaths { get; set; }
+
         public bool HasGarage { get; set; }
         public bool Two_Stories { get; set; }
         public bool Laundry_Room { get; set; }

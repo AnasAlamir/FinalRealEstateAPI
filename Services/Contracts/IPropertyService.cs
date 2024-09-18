@@ -1,5 +1,6 @@
 ﻿using DataAccess.Models;
 using Microsoft.EntityFrameworkCore;
+using Services.Dto.Inquiry;
 using Services.Dto.Property;
 using System;
 using System.Collections.Generic;
@@ -23,6 +24,7 @@ namespace Services.Contracts
         IEnumerable<PropertyDto> GetPropertiesOrderedByDateAdded(bool ascending = true); // الحصول على عقارات مرتبة بناءً على تاريخ الإضافة
         IEnumerable<PropertyDto> GetPropertiesByUserId(int userId); // الحصول على العقارات التي يمتلكها مستخدم معين
         IEnumerable<PropertyDto> GetPropertiesOrderedByDate(); // الحصول على العقارات مرتبة حسب تاريخ الإضافة
+        IEnumerable<InquiryDto> GetPropertyInquiries(int propertyId);
 
     }
 }

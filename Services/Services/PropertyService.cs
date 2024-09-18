@@ -1,6 +1,8 @@
 ﻿using DataAccess.Contracts;
 using DataAccess.Models;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Services.Contracts;
+using Services.Dto.Inquiry;
 using Services.Dto.Property;
 using System;
 using System.Collections.Generic;
@@ -13,15 +15,37 @@ namespace Services.Services
     internal class PropertyService : IPropertyService
     {
         private readonly IUnitOfWork _unitOfWork;
-        public PropertyService(IUnitOfWork unitOfWork) 
+        public PropertyService(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
+        }
+        public IEnumerable<InquiryDto> GetPropertyInquiries(int propertyId)
+        {
+            try
+            {
+                var inquiries = _unitOfWork.InquiryRepository.GetAll()
+                    .Where(i => i.PropertyId == propertyId);
+                return inquiries.Select(inquiry => new InquiryDto
+                {
+                    InquiryId = inquiry.Id,
+                    UserName = inquiry.User.FullName,
+                    PropertyName = inquiry.Property.Name,
+                    InquiryDateSent = inquiry.DateSent,
+                    InquiryMessage = inquiry.Message
+                });
+            }
+            catch (Exception ex)
+            {
+                // Log exception here
+                throw new ApplicationException("An error occurred while retrieving Property's inquiries.", ex);
+            }
         }
         public IEnumerable<PropertyDto> GetAllProperties()
         {
             try
             {
-                return _unitOfWork.Property.GetAll();
+                return _unitOfWork.PropertyRepository.GetAll()
+                    .Select(property=> PropertyToPropertyDto(property));
             }
             catch (Exception ex)
             {
@@ -34,12 +58,12 @@ namespace Services.Services
         {
             try
             {
-                var property = _unitOfWork.Property.Get(id);
+                var property = _unitOfWork.PropertyRepository.Get(id);
                 if (property == null)
                 {
                     throw new KeyNotFoundException("Property not found.");
                 }
-                return property;
+                return PropertyToPropertyDto(property);
             }
             catch (Exception ex)
             {
@@ -48,14 +72,68 @@ namespace Services.Services
             }
         }
 
-        public void CreateProperty(PropertyInsertDto property)
+        public void CreateProperty(PropertyInsertDto propertyInsertDto)//check userid,ids
         {
+            var property = new DataAccess.Models.Property
+            {
+                Name = propertyInsertDto.PropertyName,
+                Address = propertyInsertDto.PropertyAddress,
+                CityId = propertyInsertDto.PropertyCityId,
+                AreaInMeters = propertyInsertDto.AreaInMeters,
+                BathroomsNumber = propertyInsertDto.BathroomsNumber,
+                BedroomsNumber = propertyInsertDto.BedroomsNumber,
+                DateAdded = DateTime.Now,
+                Description = propertyInsertDto.Description,
+                AdditionalNotes = propertyInsertDto.AdditionalNotes,
+                Price = propertyInsertDto.PropertyPrice,
+                PropertyStatusId = propertyInsertDto.PropertyStatusId,
+                YearBuilt = propertyInsertDto.YearBuilt,
+                UserId = propertyInsertDto.UserId,
+                PropertyTypeId = propertyInsertDto.PropertyTypeId,
+            };
+            var propertyAmenities = new Amenities
+            {
+                HasGarage = propertyInsertDto.HasGarage,
+                Two_Stories = propertyInsertDto.Two_Stories,
+                Laundry_Room = propertyInsertDto.Laundry_Room, 
+                HasPool = propertyInsertDto.HasPool,
+                HasGarden = propertyInsertDto.HasGarden,
+                HasElevator = propertyInsertDto.HasElevator,
+                HasBalcony = propertyInsertDto.HasBalcony,
+                HasParking = propertyInsertDto.HasParking,
+                HasCentralHeating = propertyInsertDto.HasCentralHeating,
+                IsFurnished = propertyInsertDto.IsFurnished
+            };
+            property.AmenitiesId = _unitOfWork.PropertyRepository.GetAmenitiesId(propertyAmenities);
+
+
             ValidateProperty(property);
 
             try
             {
-                _unitOfWork.Property.Insert(property);
-                _unitOfWork.Save();
+                _unitOfWork.PropertyRepository.Insert(property);
+            _unitOfWork.Save();
+            var lastInsertedProperty = _unitOfWork.PropertyRepository.GetAll()
+                                 .OrderByDescending(p => p.Id)
+                                 .FirstOrDefault();               
+            foreach (string path in propertyInsertDto.PropertyImagePaths)
+                {
+                    var propertyImage = new PropertyImage
+                    {
+                        Path = path
+                    };
+                    if (lastInsertedProperty != null)
+                    {
+                        propertyImage.PropertyId = lastInsertedProperty.Id;
+                    }
+                    else
+                    {
+                        throw new ApplicationException("An error occurred while adding the PropertyImage.");
+                    }
+                    _unitOfWork.PropertyRepository.AddImageToProperty(propertyImage.PropertyId, propertyImage);            
+            }
+
+            _unitOfWork.Save();
             }
             catch (Exception ex)
             {
@@ -64,19 +142,54 @@ namespace Services.Services
             }
         }
 
-        public void UpdateProperty(PropertyUpdateDto property)
+        public void UpdateProperty(PropertyUpdateDto propertyUpdateDto)//check userid
         {
+            var property = new DataAccess.Models.Property
+            {
+                Id = propertyUpdateDto.PropertyId,
+                Name = propertyUpdateDto.PropertyName,
+                Address = propertyUpdateDto.PropertyAddress,
+                CityId = propertyUpdateDto.PropertyCityId,
+                AreaInMeters = propertyUpdateDto.AreaInMeters,
+                BathroomsNumber = propertyUpdateDto.BathroomsNumber,
+                BedroomsNumber = propertyUpdateDto.BedroomsNumber,
+                Description = propertyUpdateDto.Description,
+                AdditionalNotes = propertyUpdateDto.AdditionalNotes,
+                Price = propertyUpdateDto.PropertyPrice,
+                PropertyStatusId = propertyUpdateDto.PropertyStatusId,
+                YearBuilt = propertyUpdateDto.YearBuilt,
+                UserId = propertyUpdateDto.UserId,
+                PropertyTypeId = propertyUpdateDto.PropertyTypeId,
+            };
+            var propertyAmenities = new Amenities
+            {
+                HasGarage = propertyUpdateDto.HasGarage,
+                Two_Stories = propertyUpdateDto.Two_Stories,
+                Laundry_Room = propertyUpdateDto.Laundry_Room,
+                HasPool = propertyUpdateDto.HasPool,
+                HasGarden = propertyUpdateDto.HasGarden,
+                HasElevator = propertyUpdateDto.HasElevator,
+                HasBalcony = propertyUpdateDto.HasBalcony,
+                HasParking = propertyUpdateDto.HasParking,
+                HasCentralHeating = propertyUpdateDto.HasCentralHeating,
+                IsFurnished = propertyUpdateDto.IsFurnished
+            };
+            property.AmenitiesId = _unitOfWork.PropertyRepository.GetAmenitiesId(propertyAmenities);
             ValidateProperty(property);
 
-            try
+            foreach (string path in propertyUpdateDto.PropertyImagePaths)
             {
-                var existingProperty = _unitOfWork.Property.Get(property.Id);
-                if (existingProperty == null)
+                var propertyImage = new PropertyImage
                 {
-                    throw new KeyNotFoundException("Property not found.");
-                }
+                    Path = path,
+                    PropertyId = propertyUpdateDto.PropertyId
+                };
+                _unitOfWork.PropertyRepository.UpdateImageToProperty(propertyImage.PropertyId, propertyImage);
+            }
 
-                _unitOfWork.Property.Update(property);
+            try
+            {               
+                _unitOfWork.PropertyRepository.Update(property);
                 _unitOfWork.Save();
             }
             catch (Exception ex)
@@ -90,13 +203,13 @@ namespace Services.Services
         {
             try
             {
-                var property = _unitOfWork.Property.Get(id);
+                var property = _unitOfWork.PropertyRepository.Get(id);
                 if (property == null)
                 {
                     throw new KeyNotFoundException("Property not found.");
                 }
 
-                _unitOfWork.Property.Delete(id);
+                _unitOfWork.PropertyRepository.Delete(id);
                 _unitOfWork.Save();
             }
             catch (Exception ex)
@@ -110,9 +223,9 @@ namespace Services.Services
         {
             try
             {
-                return _unitOfWork.Property.GetAll()
-                    .Where(p => p.Price >= minPrice && p.Price <= maxPrice)
-                    .ToList();
+                return _unitOfWork.PropertyRepository.GetAll()
+                    .Where(property => property.Price >= minPrice && property.Price <= maxPrice)
+                    .Select(property => PropertyToPropertyDto(property));
             }
             catch (Exception ex)
             {
@@ -131,11 +244,11 @@ namespace Services.Services
                 }
 
                 searchTerm = searchTerm.ToLower();
-                return _unitOfWork.Property.GetAll()
+                return _unitOfWork.PropertyRepository.GetAll()
                     .Where(p => p.Name.ToLower().Contains(searchTerm) ||
                                 p.Description.ToLower().Contains(searchTerm) ||
                                 p.Address.ToLower().Contains(searchTerm))
-                    .ToList();
+                    .Select(property => PropertyToPropertyDto(property)); ;
             }
             catch (Exception ex)
             {
@@ -154,13 +267,13 @@ namespace Services.Services
         {
             try
             {
-                var properties = _unitOfWork.Property.GetAll().AsQueryable();
+                var properties = _unitOfWork.PropertyRepository.GetAll().AsQueryable();
 
                 if (!string.IsNullOrEmpty(location))
                     properties = properties.Where(p => p.Address.Contains(location));
 
                 if (!string.IsNullOrEmpty(propertyType))
-                    properties = properties.Where(p => p.PropertyType.Contains(propertyType));
+                    properties = properties.Where(p => p.PropertyType.Type.Contains(propertyType));
 
                 if (minBedrooms.HasValue)
                     properties = properties.Where(p => p.BedroomsNumber >= minBedrooms.Value);
@@ -174,7 +287,7 @@ namespace Services.Services
                 if (maxBathrooms.HasValue)
                     properties = properties.Where(p => p.BathroomsNumber <= maxBathrooms.Value);
 
-                return properties.ToList();
+                return properties.Select(property => PropertyToPropertyDto(property));
             }
             catch (Exception ex)
             {
@@ -188,8 +301,12 @@ namespace Services.Services
             try
             {
                 return ascending
-                    ? _unitOfWork.Property.GetAll().OrderBy(p => p.Price).ToList()
-                    : _unitOfWork.Property.GetAll().OrderByDescending(p => p.Price).ToList();
+                    ? _unitOfWork.PropertyRepository.GetAll()
+                    .OrderBy(p => p.Price)
+                    .Select(property => PropertyToPropertyDto(property))
+                    : _unitOfWork.PropertyRepository.GetAll()
+                    .OrderByDescending(p => p.Price)
+                    .Select(property => PropertyToPropertyDto(property));
             }
             catch (Exception ex)
             {
@@ -203,8 +320,12 @@ namespace Services.Services
             try
             {
                 return ascending
-                    ? _unitOfWork.Property.GetAll().OrderBy(p => p.DateAdded).ToList()
-                    : _unitOfWork.Property.GetAll().OrderByDescending(p => p.DateAdded).ToList();
+                    ? _unitOfWork.PropertyRepository.GetAll()
+                    .OrderBy(p => p.DateAdded)
+                    .Select(property => PropertyToPropertyDto(property))
+                    : _unitOfWork.PropertyRepository.GetAll()
+                    .OrderByDescending(p => p.DateAdded)
+                    .Select(property => PropertyToPropertyDto(property));
             }
             catch (Exception ex)
             {
@@ -217,9 +338,9 @@ namespace Services.Services
         {
             try
             {
-                return _unitOfWork.Property.GetAll()
+                return _unitOfWork.PropertyRepository.GetAll()
                     .Where(p => p.UserId == userId)
-                    .ToList();
+                    .Select(property => PropertyToPropertyDto(property));
             }
             catch (Exception ex)
             {
@@ -232,9 +353,10 @@ namespace Services.Services
         {
             try
             {
-                return _unitOfWork.Property.GetAll()
-                    .OrderBy(p => p.DateAdded)
-                    .ToList();
+                return _unitOfWork.PropertyRepository.GetAll()
+                .OrderBy(p => p.DateAdded)
+                .Select(property => PropertyToPropertyDto(property));
+
             }
             catch (Exception ex)
             {
@@ -244,7 +366,7 @@ namespace Services.Services
         }
 
         // Private method to validate property data
-        private void ValidateProperty(PropertyDto property)
+        private void ValidateProperty(DataAccess.Models.Property property)
         {
             if (property == null)
                 throw new ArgumentNullException(nameof(property));
@@ -263,5 +385,39 @@ namespace Services.Services
 
             // Add any additional validations as needed
         }
+        private PropertyDto PropertyToPropertyDto(DataAccess.Models.Property property)
+        {
+            return new PropertyDto
+            {
+                PropertyId = property.Id,
+                PropertyName = property.Name,
+                UserFullName = property.User.FullName,
+                PropertyPrice = property.Price,
+                PropertyAddress = property.Address,
+                PropertyCityName = property.City.CityName,
+                AreaInMeters = property.AreaInMeters,
+                BathroomsNumber = property.BathroomsNumber,
+                BedroomsNumber = property.BedroomsNumber,
+                PropertyStatusName = property.PropertyStatus.Status,
+                PropertyTypeName = property.PropertyType.Type,
+                PropertyDateAdded = property.DateAdded,
+                YearBuilt = property.YearBuilt,
+                Description = property.Description,
+                AdditionalNotes = property.AdditionalNotes,
+
+                PropertyImagePaths =_unitOfWork.PropertyRepository.GetPropertyImages(property.Id).Select(i=>i.Path),
+
+                HasGarage = property.Amenities.HasGarage,
+                Two_Stories = property.Amenities.Two_Stories,
+                Laundry_Room = property.Amenities.Laundry_Room,
+                HasPool = property.Amenities.HasPool,
+                HasGarden = property.Amenities.HasGarden,
+                HasElevator = property.Amenities.HasElevator,
+                HasBalcony = property.Amenities.HasBalcony,
+                HasParking = property.Amenities.HasParking,
+                HasCentralHeating = property.Amenities.HasCentralHeating,
+                IsFurnished = property.Amenities.IsFurnished
+            };
+            }
     }
 }
