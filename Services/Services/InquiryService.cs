@@ -1,6 +1,7 @@
 ﻿using DataAccess.Contracts;
 using DataAccess.Models;
 using Services.Contracts;
+using Services.Dto.Favorite;
 using Services.Dto.Inquiry;
 using Services.Dto.Property;
 using System;
@@ -88,6 +89,10 @@ namespace Services.Services
 
         public void CreateInquiry(InquiryInsertDto inquiryInsertDto)
         {
+            if (_unitOfWork.PropertyRepository.Get(inquiryInsertDto.PropertyId).UserId == inquiryInsertDto.UserId)
+            {
+                throw new InvalidOperationException("User Can not Inquiry his property.");
+            }
             if (inquiryInsertDto == null)
             {
                 throw new ArgumentNullException(nameof(inquiryInsertDto), "Inquiry cannot be null.");

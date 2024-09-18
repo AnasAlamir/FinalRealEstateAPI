@@ -48,6 +48,11 @@ namespace Services.Services
 
             try
             {
+                if (_unitOfWork.PropertyRepository.Get(favoriteInsertDto.PropertyId).UserId == favoriteInsertDto.UserId)
+                {
+                    throw new InvalidOperationException("User Can not add his property to Favorite.");
+                }
+
                 if (IsFavorite(favoriteInsertDto.UserId, favoriteInsertDto.PropertyId))
                 {
                     throw new InvalidOperationException("Property is already in favorites.");
@@ -106,13 +111,46 @@ namespace Services.Services
         {
             try
             {
-                var favorites = GetFavoritesByUserId(userId);
-                var propertyIds = favorites.Select(f => f.Propertyid);
+                var favorites = _unitOfWork.FavoriteRepository.GetAll()
+                    .Where(f => f.UserId == userId);
+
+                var propertyIds = favorites
+                     .Select(f => f.PropertyId);
 
                 var properties = _unitOfWork.PropertyRepository.GetAll()
                     .Where(p => propertyIds.Contains(p.Id));
 
-                return _mapper.Map<IEnumerable<PropertyDto>>(properties);
+                return properties.Select(property=> new PropertyDto
+                {
+                    PropertyId = property.Id,
+                    PropertyName = property.Name,
+                    UserFullName = property.User.FullName,
+                    PropertyPrice = property.Price,
+                    PropertyAddress = property.Address,
+                    PropertyCityName = property.City.CityName,
+                    AreaInMeters = property.AreaInMeters,
+                    BathroomsNumber = property.BathroomsNumber,
+                    BedroomsNumber = property.BedroomsNumber,
+                    PropertyStatusName = property.PropertyStatus.Status,
+                    PropertyTypeName = property.PropertyType.Type,
+                    PropertyDateAdded = property.DateAdded,
+                    YearBuilt = property.YearBuilt,
+                    Description = property.Description,
+                    AdditionalNotes = property.AdditionalNotes,
+
+                    PropertyImagePaths = _unitOfWork.PropertyRepository.GetPropertyImages(property.Id).Select(i => i.Path),
+
+                    HasGarage = property.Amenities.HasGarage,
+                    Two_Stories = property.Amenities.Two_Stories,
+                    Laundry_Room = property.Amenities.Laundry_Room,
+                    HasPool = property.Amenities.HasPool,
+                    HasGarden = property.Amenities.HasGarden,
+                    HasElevator = property.Amenities.HasElevator,
+                    HasBalcony = property.Amenities.HasBalcony,
+                    HasParking = property.Amenities.HasParking,
+                    HasCentralHeating = property.Amenities.HasCentralHeating,
+                    IsFurnished = property.Amenities.IsFurnished
+                });
             }
             catch (Exception ex)
             {
