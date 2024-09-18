@@ -27,43 +27,34 @@ namespace DataAccess.Repositories
                 .Include(property => property.Amenities);
 
         }
+        public override Property? Get(int id)
+        {
+            return _dbSet
+                .Include(property => property.User)
+                .Include(property => property.City)
+                .Include(property => property.PropertyType)
+                .Include(property => property.PropertyStatus)
+                .Include(property => property.Amenities)
+                .FirstOrDefault(p=>p.Id == id);
+        }
+        //public IEnumerable<PropertyImage> GetPropertyImages(int propertyId)
+        //{
+        //    return _dbSetPropertyImage.Where(i => i.PropertyId == propertyId);
+        //}
         public IEnumerable<PropertyImage> GetPropertyImages(int propertyId)
         {
-            return _dbSetPropertyImage.AsEnumerable().Where(i=>i.PropertyId == propertyId);
+            return _dbSetPropertyImage.AsNoTracking().Where(i => i.PropertyId == propertyId);
         }
 
-        public void AddImageToProperty(int propertyId, PropertyImage propertyImage)
+        public void AddImageToProperty(PropertyImage propertyImage)
         {
-            Property? property = _dbSet.Include(p => p.PropertyImages)
-                                 .FirstOrDefault(p => p.Id == propertyId);
-            if (property != null && propertyImage != null)
-            {
-                propertyImage.PropertyId = propertyId;
-                _dbSetPropertyImage.Add(propertyImage);
-            }
-            else
-            {
-                throw new ArgumentException("Property or PropertyImage is null.");
-            }
+            _dbSetPropertyImage.Add(propertyImage);
         }
-        public void UpdateImageToProperty(int propertyId, PropertyImage propertyImage)
-        {
-            Property? property = _dbSet.Include(p => p.PropertyImages)
-                                 .FirstOrDefault(p => p.Id == propertyId);
-            var getPropertyImage = _dbSetPropertyImage
-                .Where(i=>i.PropertyId == propertyImage.PropertyId && i.Path == propertyImage.Path)
-                .FirstOrDefault();
-            if (property != null && propertyImage != null)
-            {
-                propertyImage.Id = getPropertyImage.Id;
-                propertyImage.PropertyId = propertyId;
+        public void UpdateImageToProperty(PropertyImage propertyImage)
+        { 
                 _dbSetPropertyImage.Update(propertyImage);
-            }
-            else
-            {
-                throw new ArgumentException("Property or PropertyImage is null.");
-            }
-        }
+        }      
+
         public int GetAmenitiesId(Amenities amenities)
         {
             string numberInBinary = null;

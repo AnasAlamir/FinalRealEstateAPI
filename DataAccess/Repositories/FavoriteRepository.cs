@@ -21,5 +21,12 @@ namespace DataAccess.Repositories
                 .Include(favorite => favorite.User)
                 .Include(favorite => favorite.Property);
         }
+        public override Favorite? Get(int id)
+        {
+            return _dbSet
+                .Include(favorite => favorite.User)
+                .Include(favorite => favorite.Property)
+                .FirstOrDefault(favorite => favorite.Id == id); ;
+        }
     }
 }

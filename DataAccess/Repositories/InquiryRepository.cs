@@ -21,5 +21,12 @@ namespace DataAccess.Repositories
                 .Include(Inquiry => Inquiry.User) 
                 .Include(Inquiry => Inquiry.Property);
         }
+        public override Inquiry? Get(int id)
+        {
+            return _dbSet
+                .Include(Inquiry => Inquiry.User)
+                .Include(Inquiry => Inquiry.Property)
+                .FirstOrDefault(Inquiry => Inquiry.Id == id); ;
+        }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using DataAccess.Contracts;
 using DataAccess.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Services.Contracts;
 using Services.Dto.Inquiry;
@@ -45,7 +46,7 @@ namespace Services.Services
             try
             {
                 return _unitOfWork.PropertyRepository.GetAll()
-                    .Select(property=> PropertyToPropertyDto(property));
+                    .Select(property => PropertyToPropertyDto(property));
             }
             catch (Exception ex)
             {
@@ -95,7 +96,7 @@ namespace Services.Services
             {
                 HasGarage = propertyInsertDto.HasGarage,
                 Two_Stories = propertyInsertDto.Two_Stories,
-                Laundry_Room = propertyInsertDto.Laundry_Room, 
+                Laundry_Room = propertyInsertDto.Laundry_Room,
                 HasPool = propertyInsertDto.HasPool,
                 HasGarden = propertyInsertDto.HasGarden,
                 HasElevator = propertyInsertDto.HasElevator,
@@ -112,11 +113,11 @@ namespace Services.Services
             try
             {
                 _unitOfWork.PropertyRepository.Insert(property);
-            _unitOfWork.Save();
-            var lastInsertedProperty = _unitOfWork.PropertyRepository.GetAll()
-                                 .OrderByDescending(p => p.Id)
-                                 .FirstOrDefault();               
-            foreach (string path in propertyInsertDto.PropertyImagePaths)
+                _unitOfWork.Save();
+                var lastInsertedProperty = _unitOfWork.PropertyRepository.GetAll()
+                                     .OrderByDescending(p => p.Id)
+                                     .FirstOrDefault();
+                foreach (string path in propertyInsertDto.PropertyImagePaths)
                 {
                     var propertyImage = new PropertyImage
                     {
@@ -130,10 +131,10 @@ namespace Services.Services
                     {
                         throw new ApplicationException("An error occurred while adding the PropertyImage.");
                     }
-                    _unitOfWork.PropertyRepository.AddImageToProperty(propertyImage.PropertyId, propertyImage);            
-            }
+                    _unitOfWork.PropertyRepository.AddImageToProperty(propertyImage);
+                }
 
-            _unitOfWork.Save();
+                _unitOfWork.Save();
             }
             catch (Exception ex)
             {
@@ -142,7 +143,7 @@ namespace Services.Services
             }
         }
 
-        public void UpdateProperty(PropertyUpdateDto propertyUpdateDto)//check userid
+        public void UpdateProperty(PropertyUpdateDto propertyUpdateDto)//check userid,ids
         {
             var property = new DataAccess.Models.Property
             {
@@ -177,18 +178,26 @@ namespace Services.Services
             property.AmenitiesId = _unitOfWork.PropertyRepository.GetAmenitiesId(propertyAmenities);
             ValidateProperty(property);
 
+            var images = _unitOfWork.PropertyRepository.GetPropertyImages(propertyUpdateDto.PropertyId);
             foreach (string path in propertyUpdateDto.PropertyImagePaths)
             {
-                var propertyImage = new PropertyImage
-                {
-                    Path = path,
-                    PropertyId = propertyUpdateDto.PropertyId
-                };
-                _unitOfWork.PropertyRepository.UpdateImageToProperty(propertyImage.PropertyId, propertyImage);
-            }
+                var existingImage = images.FirstOrDefault(i => i.PropertyId == propertyUpdateDto.PropertyId && i.Path == path);
 
+                if (existingImage != null)
+                {
+                    existingImage.Path = path;
+                    existingImage.PropertyId = propertyUpdateDto.PropertyId;
+
+                    _unitOfWork.PropertyRepository.UpdateImageToProperty(existingImage);
+                }
+                else
+                {
+                    throw new InvalidOperationException("No matching image found for the specified property and path.");
+                }
+            }
+            _unitOfWork.Save();
             try
-            {               
+            {
                 _unitOfWork.PropertyRepository.Update(property);
                 _unitOfWork.Save();
             }
@@ -405,7 +414,7 @@ namespace Services.Services
                 Description = property.Description,
                 AdditionalNotes = property.AdditionalNotes,
 
-                PropertyImagePaths =_unitOfWork.PropertyRepository.GetPropertyImages(property.Id).Select(i=>i.Path),
+                PropertyImagePaths = _unitOfWork.PropertyRepository.GetPropertyImages(property.Id).Select(i => i.Path),
 
                 HasGarage = property.Amenities.HasGarage,
                 Two_Stories = property.Amenities.Two_Stories,
@@ -418,6 +427,6 @@ namespace Services.Services
                 HasCentralHeating = property.Amenities.HasCentralHeating,
                 IsFurnished = property.Amenities.IsFurnished
             };
-            }
+        }
     }
 }

@@ -87,15 +87,21 @@ namespace Services.Services
             }
         }
 
-        public void CreateInquiry(InquiryInsertDto inquiryInsertDto)
+        public void CreateInquiry(InquiryInsertDto inquiryInsertDto)///no repaeat
         {
+            if (inquiryInsertDto == null)
+            {
+                throw new ArgumentNullException(nameof(inquiryInsertDto), "Inquiry cannot be null.");
+            }
             if (_unitOfWork.PropertyRepository.Get(inquiryInsertDto.PropertyId).UserId == inquiryInsertDto.UserId)
             {
                 throw new InvalidOperationException("User Can not Inquiry his property.");
             }
-            if (inquiryInsertDto == null)
+            var isInserted = _unitOfWork.InquiryRepository.GetAll()
+                .FirstOrDefault(inquiry => inquiry.UserId == inquiryInsertDto.UserId && inquiry.PropertyId == inquiryInsertDto.PropertyId);
+            if (isInserted != null)
             {
-                throw new ArgumentNullException(nameof(inquiryInsertDto), "Inquiry cannot be null.");
+                throw new InvalidOperationException("Oready inserted.");
             }
 
             try
@@ -104,7 +110,7 @@ namespace Services.Services
                 {
                     UserId = inquiryInsertDto.UserId,
                     PropertyId = inquiryInsertDto.PropertyId,
-                    DateSent = inquiryInsertDto.InquiryDateSent,
+                    DateSent = DateTime.Now,
                     Message = inquiryInsertDto.InquiryMessage
                 };
                 _unitOfWork.InquiryRepository.Insert(inquiry);
@@ -129,7 +135,6 @@ namespace Services.Services
                     Id = inquiryUpdateDto.InquiryId,
                     UserId = inquiryUpdateDto.UserId,
                     PropertyId = inquiryUpdateDto.PropertyId,
-                    DateSent = inquiryUpdateDto.InquiryDateSent,
                     Message = inquiryUpdateDto.InquiryMessage
                 };
                 ValidateInquiryDto(inquiry);

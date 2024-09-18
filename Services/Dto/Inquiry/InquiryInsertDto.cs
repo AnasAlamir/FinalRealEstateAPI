@@ -11,6 +11,5 @@ namespace Services.Dto.Inquiry
         public int UserId { get; set; }
         public int PropertyId { get; set; }
         public string InquiryMessage { get; set; }
-        public DateTime InquiryDateSent { get; set; }
     }
 }

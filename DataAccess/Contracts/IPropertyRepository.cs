@@ -10,8 +10,8 @@ namespace DataAccess.Contracts
     public interface IPropertyRepository : IBaseRepository<Property>
     {
         IEnumerable<PropertyImage> GetPropertyImages(int propertyId);
-        void AddImageToProperty(int propertyId, PropertyImage propertyImage);
-        void UpdateImageToProperty(int propertyId, PropertyImage propertyImage);
+        void AddImageToProperty(PropertyImage propertyImage);
+        void UpdateImageToProperty(PropertyImage propertyImage);
         int GetAmenitiesId(Amenities amenities);
     }
 }
