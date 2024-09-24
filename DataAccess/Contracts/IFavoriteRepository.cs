@@ -9,5 +9,6 @@ namespace DataAccess.Contracts
 {
     public interface IFavoriteRepository : IBaseRepository<Favorite>
     {
+        bool IsDuplicateFavorite(int userId, int propertyId);
     }
 }

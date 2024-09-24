@@ -9,5 +9,6 @@ namespace DataAccess.Contracts
 {
     public interface IUserRepository :IBaseRepository<User>
     {
+        bool IsDuplicateUser(string email, string phoneNumber);
     }
 }

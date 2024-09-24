@@ -26,7 +26,13 @@ namespace DataAccess.Repositories
             return _dbSet
                 .Include(Inquiry => Inquiry.User)
                 .Include(Inquiry => Inquiry.Property)
-                .FirstOrDefault(Inquiry => Inquiry.Id == id); ;
+                .AsNoTracking()
+                .FirstOrDefault(Inquiry => Inquiry.Id == id);
+        }
+        public bool IsDuplicateInquiry(int userId, int propertyId)
+        {
+            var value = _dbSet.FirstOrDefault(inquiry => inquiry.UserId == userId && inquiry.PropertyId == propertyId);
+            return value != null;
         }
     }
 }

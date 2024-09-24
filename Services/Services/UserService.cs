@@ -90,6 +90,10 @@ namespace Services.Services
                 // Hash the password before saving
                 user.Password = HashPassword(user.Password);
                 ValidateUserDto(user);
+                if (_unitOfWork.UserRepository.IsDuplicateUser(user.Email, user.PhoneNumber))
+                {
+                    throw new ApplicationException("User already exists can not insert.");
+                }
                 _unitOfWork.UserRepository.Insert(user);
                 _unitOfWork.Save();
             }

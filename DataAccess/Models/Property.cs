@@ -12,7 +12,7 @@ namespace DataAccess.Models
     {
 
         public int Id { get; set; }
-        [StringLength(20)]
+        [StringLength(50)]
         public string Name { get; set; }
 
         [Column(TypeName = "decimal(18,2)")]

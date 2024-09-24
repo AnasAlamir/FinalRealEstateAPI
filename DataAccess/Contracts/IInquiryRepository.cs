@@ -9,5 +9,6 @@ namespace DataAccess.Contracts
 {
     public interface IInquiryRepository : IBaseRepository<Inquiry>
     {
+        bool IsDuplicateInquiry(int userId, int propertyId);
     }
 }

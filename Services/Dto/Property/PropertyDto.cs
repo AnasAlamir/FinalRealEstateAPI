@@ -12,7 +12,7 @@ namespace Services.Dto.Property
     public class PropertyDto////edit this 
     {
         public int PropertyId { get; set; }
-        [StringLength(20)]
+        [StringLength(50)]
         public string PropertyName { get; set; }
         public string UserFullName { get; set; }
         [Column(TypeName = "decimal(18,2)")]

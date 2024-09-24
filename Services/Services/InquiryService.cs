@@ -97,13 +97,10 @@ namespace Services.Services
             {
                 throw new InvalidOperationException("User Can not Inquiry his property.");
             }
-            var isInserted = _unitOfWork.InquiryRepository.GetAll()
-                .FirstOrDefault(inquiry => inquiry.UserId == inquiryInsertDto.UserId && inquiry.PropertyId == inquiryInsertDto.PropertyId);
-            if (isInserted != null)
+            if (_unitOfWork.InquiryRepository.IsDuplicateInquiry(inquiryInsertDto.UserId, inquiryInsertDto.PropertyId))
             {
-                throw new InvalidOperationException("Oready inserted.");
+                throw new ApplicationException("Inquiry already exists can not insert.");
             }
-
             try
             {
                 var inquiry = new Inquiry
@@ -130,11 +127,12 @@ namespace Services.Services
             }
             try
             {
+                var existInquiry = _unitOfWork.InquiryRepository.Get(inquiryUpdateDto.InquiryId);
                 var inquiry = new Inquiry
                 {
                     Id = inquiryUpdateDto.InquiryId,
-                    UserId = inquiryUpdateDto.UserId,
-                    PropertyId = inquiryUpdateDto.PropertyId,
+                    UserId = existInquiry.UserId,///null
+                    PropertyId = existInquiry.PropertyId,///null
                     Message = inquiryUpdateDto.InquiryMessage
                 };
                 ValidateInquiryDto(inquiry);

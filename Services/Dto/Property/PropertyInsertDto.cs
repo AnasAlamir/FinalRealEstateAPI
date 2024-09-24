@@ -10,7 +10,7 @@ namespace Services.Dto.Property
 {
     public class PropertyInsertDto
     {
-        [StringLength(20)]
+        [StringLength(50)]
         public string PropertyName { get; set; }
         public int UserId { get; set; }
         [Column(TypeName = "decimal(18,2)")]

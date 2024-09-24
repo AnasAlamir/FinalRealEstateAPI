@@ -14,5 +14,10 @@ namespace DataAccess.Repositories
         public UserRepository(AppDbContext context) : base(context)
         {
         }
+        public bool IsDuplicateUser(string email, string phoneNumber)
+        {
+            var value = _dbSet.FirstOrDefault(user => user.Email == email || user.PhoneNumber == phoneNumber);
+            return value != null;
+        }
     }
 }

@@ -28,5 +28,10 @@ namespace DataAccess.Repositories
                 .Include(favorite => favorite.Property)
                 .FirstOrDefault(favorite => favorite.Id == id); ;
         }
+        public bool IsDuplicateFavorite(int userId, int propertyId)
+        {
+            var value = _dbSet.FirstOrDefault(favorite => favorite.UserId == userId && favorite.PropertyId == propertyId);
+            return value != null;
+        }
     }
 }

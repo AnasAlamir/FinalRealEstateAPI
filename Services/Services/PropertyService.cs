@@ -112,6 +112,10 @@ namespace Services.Services
 
             try
             {
+                if(_unitOfWork.PropertyRepository.IsDuplicateProperty(property.Name, property.Address, property.UserId))
+                {
+                    throw new ApplicationException("Property already with the user can not insert.");
+                }
                 _unitOfWork.PropertyRepository.Insert(property);
                 _unitOfWork.Save();
                 var lastInsertedProperty = _unitOfWork.PropertyRepository.GetAll()
@@ -123,6 +127,10 @@ namespace Services.Services
                     {
                         Path = path
                     };
+                    if (_unitOfWork.PropertyRepository.IsDuplicatePropertyImage(propertyImage.Path))
+                    {
+                        throw new ApplicationException("Property image already exists can not insert.");
+                    }
                     if (lastInsertedProperty != null)
                     {
                         propertyImage.PropertyId = lastInsertedProperty.Id;
@@ -180,7 +188,7 @@ namespace Services.Services
 
             var images = _unitOfWork.PropertyRepository.GetPropertyImages(propertyUpdateDto.PropertyId);
             foreach (string path in propertyUpdateDto.PropertyImagePaths)
-            {
+            {               
                 var existingImage = images.FirstOrDefault(i => i.PropertyId == propertyUpdateDto.PropertyId && i.Path == path);
 
                 if (existingImage != null)

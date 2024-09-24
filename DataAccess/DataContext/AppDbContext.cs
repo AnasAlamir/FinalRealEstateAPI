@@ -126,15 +126,36 @@ namespace DataAccess.DataContext
         new City { Id = 11, CityName = "Istanbul" },
         new City { Id = 12, CityName = "Moscow" },
         new City { Id = 13, CityName = "Mexico City" }
-    });       
+    });
 
-        modelBuilder.Entity<User>()
-               .HasIndex(d => d.PhoneNumber)
-               .IsUnique();
+            ///handel in service
 
             modelBuilder.Entity<User>()
-                .Property(u => u.FullName)
+            .HasIndex(user => user.Email)
+            .IsUnique();
+
+            modelBuilder.Entity<User>()
+            .HasIndex(user => user.PhoneNumber )
+            .IsUnique();
+
+            modelBuilder.Entity<User>()
+                .Property(user => user.FullName)
                 .HasComputedColumnSql("[F_Name] + ' ' + [L_Name]");
+
+            modelBuilder.Entity<Property>()
+            .HasIndex(property => new { property.Name, property.Address, property.UserId })
+            .IsUnique();
+
+            modelBuilder.Entity<Inquiry>()
+            .HasIndex(inquiry => new { inquiry.UserId,inquiry.PropertyId })
+            .IsUnique();
+            modelBuilder.Entity<Favorite>()
+            .HasIndex(inquiry => new { inquiry.UserId, inquiry.PropertyId })
+            .IsUnique();
+
+            modelBuilder.Entity<PropertyImage>()
+            .HasIndex(pi => pi.Path)
+            .IsUnique();
         }
     }
 }

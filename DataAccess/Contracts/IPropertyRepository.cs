@@ -13,5 +13,7 @@ namespace DataAccess.Contracts
         void AddImageToProperty(PropertyImage propertyImage);
         void UpdateImageToProperty(PropertyImage propertyImage);
         int GetAmenitiesId(Amenities amenities);
+        bool IsDuplicateProperty(string name, string address, int userId);
+        bool IsDuplicatePropertyImage(string path);
     }
 }

@@ -71,6 +71,17 @@ namespace DataAccess.Repositories
             int amenityId = Convert.ToInt32(numberInBinary, 2) + 1;
             return amenityId;
         }
-
+        public bool IsDuplicateProperty(string name, string address, int userId)
+        {
+        var value =  _dbSet
+                .FirstOrDefault(p => p.Name == name && p.Address == address && p.UserId == userId);
+            return value != null;
+        }
+        public bool IsDuplicatePropertyImage(string path)
+        {
+            var value = _dbSetPropertyImage
+                    .FirstOrDefault(pi => pi.Path == path);
+            return value != null;
+        }
     }
 }
