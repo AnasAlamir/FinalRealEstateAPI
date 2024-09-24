@@ -1,0 +1,1 @@
+The Real Estate Web Application, built with ASP.NET MVC, ASP.NET API, and Entity Framework with SQL Server, enables users to browse and manage property listings. It features filters in search for a streamlined property management experience.
